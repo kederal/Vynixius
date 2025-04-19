@@ -3421,6 +3421,94 @@ function Library:AddWindow(settings)
                             TextSize = 14,
                             TextWrapped = true,
                         })
+
+                        function Section:AddMultiDropdown(name, items, settings, callback)
+                            local MultiDropdown = {
+                                Name = name,
+                                Type = "MultiDropdown",
+                                Flag = settings and settings.flag or name,
+                                Items = items,
+                                Selected = {},
+                                Toggled = false,
+                                Callback = callback,
+                            }
+                        
+                            MultiDropdown.Holder = Utils.Create("Frame", {
+                                Name = name,
+                                BackgroundColor3 = Utils.Color.Add(Library.Theme.SectionColor, Color3.fromRGB(5, 5, 5)),
+                                ClipsDescendants = true,
+                                Size = UDim2.new(1, 0, 0, 40),
+                            }, UDim.new(0, 5))
+                        
+                            MultiDropdown.Button = Utils.Create("TextButton", {
+                                Name = "Dropdown",
+                                BackgroundColor3 = Utils.Color.Add(Library.Theme.SectionColor, Color3.fromRGB(10, 10, 10)),
+                                Position = UDim2.new(0, 5, 0, 5),
+                                Size = UDim2.new(1, -10, 0, 30),
+                                Font = Enum.Font.SourceSans,
+                                Text = name .. " (None)",
+                                TextColor3 = Library.Theme.TextColor,
+                                TextSize = 14,
+                                TextXAlignment = Enum.TextXAlignment.Left,
+                            })
+                        
+                            MultiDropdown.List = Utils.Create("Frame", {
+                                Name = "List",
+                                BackgroundTransparency = 1,
+                                Position = UDim2.new(0, 5, 0, 40),
+                                Size = UDim2.new(1, -10, 0, #items * 25),
+                                Visible = false,
+                            })
+                        
+                            local UIListLayout = Utils.Create("UIListLayout", {
+                                SortOrder = Enum.SortOrder.LayoutOrder,
+                                Padding = UDim.new(0, 5),
+                            })
+                            UIListLayout.Parent = MultiDropdown.List
+                        
+                            for _, item in ipairs(items) do
+                                local Toggle = Utils.Create("TextButton", {
+                                    Name = item,
+                                    BackgroundColor3 = Utils.Color.Add(Library.Theme.SectionColor, Color3.fromRGB(8, 8, 8)),
+                                    Size = UDim2.new(1, 0, 0, 25),
+                                    Font = Enum.Font.SourceSans,
+                                    Text = item,
+                                    TextColor3 = Library.Theme.TextColor,
+                                    TextSize = 14,
+                                })
+                        
+                                Toggle.MouseButton1Click:Connect(function()
+                                    if MultiDropdown.Selected[item] then
+                                        MultiDropdown.Selected[item] = nil
+                                    else
+                                        MultiDropdown.Selected[item] = true
+                                    end
+                        
+                                    local selectedNames = {}
+                                    for sel in pairs(MultiDropdown.Selected) do
+                                        table.insert(selectedNames, sel)
+                                    end
+                                    MultiDropdown.Button.Text = name .. " (" .. (#selectedNames > 0 and table.concat(selectedNames, ", ") or "None") .. ")"
+                                    callback(selectedNames)
+                                end)
+                        
+                                Toggle.Parent = MultiDropdown.List
+                            end
+                        
+                            MultiDropdown.Button.MouseButton1Click:Connect(function()
+                                MultiDropdown.Toggled = not MultiDropdown.Toggled
+                                MultiDropdown.List.Visible = MultiDropdown.Toggled
+                                MultiDropdown.Holder.Size = UDim2.new(1, 0, 0, MultiDropdown.Toggled and (40 + #items * 25) or 40)
+                            end)
+                        
+                            MultiDropdown.Button.Parent = MultiDropdown.Holder
+                            MultiDropdown.List.Parent = MultiDropdown.Holder
+                            table.insert(Section.Items, MultiDropdown)
+                            MultiDropdown.Holder.Parent = Section.List
+                        
+                            return MultiDropdown
+                        end
+                        
     
                         -- Scripts
     
